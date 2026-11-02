@@ -1,0 +1,1013 @@
+{
+  "name": "Website Monitoring & Alert Automation (Public Template)",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $json.website }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "70f81398-3b2c-41e4-aec7-fb96314a8ef2",
+      "name": "Check Website Availability",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -368,
+        -320
+      ],
+      "id": "2e5a7255-543d-4864-b4cd-71113aba3be3",
+      "name": "Schedule Website Check"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        16
+      ],
+      "id": "dc3f3bef-3f39-47b2-9418-fbda0eba34ca",
+      "name": "Manual Test Trigger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "841e048e-4ee6-40cf-9943-1b5b78c5b71d",
+              "leftValue": "={{ $('Check Website Availability').item.json.statusCode }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -208
+      ],
+      "id": "404cd33e-bc7d-4ba7-a95a-533c70e9eb44",
+      "name": "Evaluate Website  Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9c44d6dc-b113-48c9-8b29-3b4c599fb2da",
+              "name": "website",
+              "value": "https://httpbin.org/status/503",
+              "type": "string"
+            },
+            {
+              "id": "840659eb-96aa-4f36-b4ea-c23becaec377",
+              "name": "status",
+              "value": "UP",
+              "type": "string"
+            },
+            {
+              "id": "f45158b3-9e23-4b19-b2d3-e450dd2cb54a",
+              "name": "statusCode",
+              "value": "={{ $json.statusCode }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        768,
+        -256
+      ],
+      "id": "8564693d-21f8-4301-9e9c-f35557c506b2",
+      "name": "Prepare UP Status Log"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Website Monitoring Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checked_at": "={{ $now.toISO() }}",
+            "website": "={{ $json.website }}",
+            "status": "={{ $json.status }}",
+            "status_code": "={{ $json.statusCode }}",
+            "error_message": "={{ $json.errorMessage || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "checked_at",
+              "displayName": "checked_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_code",
+              "displayName": "status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -192
+      ],
+      "id": "c6f8c8a3-010f-40d7-98ae-03a925df290f",
+      "name": "Log Website UP Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "487e1242-1645-49a7-975d-f965d297db3f",
+              "name": "website",
+              "value": "https://httpbin.org/status/503",
+              "type": "string"
+            },
+            {
+              "id": "b99912d5-5330-41ee-8a5c-f3424c7a25b2",
+              "name": "status",
+              "value": "DOWN",
+              "type": "string"
+            },
+            {
+              "id": "32f2d7c7-1216-4bf7-9349-a5df89280487",
+              "name": "statusCode",
+              "value": "={{ Number($json.statusCode ?? 0) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "15a95596-6711-4ca3-8b70-0dd75f7d5d7d",
+      "name": "Prepare DOWN Status Log1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Website Monitoring Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checked_at": "={{ $now.toISO() }}",
+            "website": "={{ $json.website }}",
+            "status_code": "={{ $json.statusCode }}",
+            "status": "={{ $json.status }}",
+            "error_message": "={{ $json.errorMessage || 'website is down' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "checked_at",
+              "displayName": "checked_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_code",
+              "displayName": "status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        -96
+      ],
+      "id": "17c53c99-d0fc-4efe-bc35-1d3167f3707d",
+      "name": "Log Website DOWN Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2cac59d-3d93-48a6-86bb-1544176db5a2",
+              "name": "website",
+              "value": "={{ $json.website }}",
+              "type": "string"
+            },
+            {
+              "id": "2f9c090f-9333-4029-92d7-ca16d486037d",
+              "name": "status",
+              "value": "DOWN",
+              "type": "string"
+            },
+            {
+              "id": "06dad57c-9b74-40a8-b5d2-ee5328c6dc16",
+              "name": "errorMessage",
+              "value": "={{ $json.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "6afe530d-2a60-4935-91ca-ac5559ca4ea0",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        176,
+        208
+      ],
+      "id": "5bdd09a6-ffa9-4eb1-aaeb-deeed89aafd3",
+      "name": "Prepare ERROR Status Log"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Website Monitoring Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/REPLACE_WITH_YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checked_at": "={{ $now.toISO() }}",
+            "website": "={{ $json.website }}",
+            "status": "={{ $json.status }}",
+            "status_code": "={{ $json.statusCode }}",
+            "error_message": "={{ $json.errorMessage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "checked_at",
+              "displayName": "checked_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_code",
+              "displayName": "status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -80,
+        224
+      ],
+      "id": "10a3fb28-78b5-4a3a-987f-76c55a74ceed",
+      "name": "Log Website ERROR Status"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=⚠️ WEBSITE DOWN ALERT\n\nWebsite: {{ $json.website }}\nStatus: {{ $json.status }}\nStatus Code: {{ $json.statusCode }}\nChecked at: {{ $now.toISO() }}\n\nPlease check the website.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        224
+      ],
+      "id": "2574a3b0-6f28-48cc-ac66-1131c778b627",
+      "name": "Telegram Connection Test"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "Website_Monitor_State",
+        "columns": {
+          "column": [
+            {
+              "name": "website"
+            },
+            {
+              "name": "last_status"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "af25402a-27b1-4669-9c57-b30202903fc4",
+      "name": "Create a data table"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Website_Monitor_State",
+          "cachedResultUrl": "/projects/YOUR_PROJECT_ID/datatables/REPLACE_WITH_YOUR_DATA_TABLE_ID"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "website",
+              "keyValue": "={{ $json.website }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -368
+      ],
+      "id": "be433594-34ef-4f12-9f35-4107bd5dc63b",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        -352
+      ],
+      "id": "49d8628f-0395-49f8-98da-bd3b8cb2612d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "826db07c-75fe-4ee7-976f-09b153a3bc0c",
+              "leftValue": "={{ $('Get row(s)').first().json.last_status }}",
+              "rightValue": "DOWN",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        240
+      ],
+      "id": "e5711166-f0fe-420d-aaf1-288ca6e2313a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Website_Monitor_State",
+          "cachedResultUrl": "/projects/YOUR_PROJECT_ID/datatables/REPLACE_WITH_YOUR_DATA_TABLE_ID"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "website",
+              "keyValue": "={{ $json.website }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "website": "={{ $json.website }}",
+            "last_status": "DOWN"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_status",
+              "displayName": "last_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        80
+      ],
+      "id": "3974fc6c-3bf6-474c-9aec-7f990d85144c",
+      "name": "Save Down State"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Website_Monitor_State",
+          "cachedResultUrl": "/projects/YOUR_PROJECT_ID/datatables/REPLACE_WITH_YOUR_DATA_TABLE_ID"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "website",
+              "keyValue": "={{ $json.website }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "website": "={{ $json.website }}",
+            "last_status": "UP"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_status",
+              "displayName": "last_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        -352
+      ],
+      "id": "aa36336d-ff57-4406-b4f8-2e90e3376a6b",
+      "name": "Save UP State"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0928de38-0c7b-465e-a250-571cd9111ea1",
+              "name": "website",
+              "value": "https://httpbin.org/status/503",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -192,
+        -320
+      ],
+      "id": "c5e9a7cb-50e5-4394-a077-96bd07a3acb5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_DATA_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Website_Monitor_State",
+          "cachedResultUrl": "/projects/YOUR_PROJECT_ID/datatables/REPLACE_WITH_YOUR_DATA_TABLE_ID"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "website",
+              "keyValue": "https://httpbin.org/status/503"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "last_status": "UP"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "website",
+              "displayName": "website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_status",
+              "displayName": "last_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        32
+      ],
+      "id": "14fcba35-da74-42cc-aa1e-09ca90862cec",
+      "name": "Update row(s)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2addacd9-4622-4c6f-9539-7eb9a546b4ad",
+              "name": "website",
+              "value": "={{ $('Edit Fields').first().json.website }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -64,
+        -128
+      ],
+      "id": "ce27644d-ef6f-41e0-87b6-f0a1681dfd38",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check Website Availability": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare ERROR Status Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Website Check": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Website Availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Website  Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare UP Status Log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare DOWN Status Log1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare UP Status Log": {
+      "main": [
+        [
+          {
+            "node": "Log Website UP Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save UP State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare DOWN Status Log1": {
+      "main": [
+        [
+          {
+            "node": "Log Website DOWN Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Down State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare ERROR Status Log": {
+      "main": [
+        [
+          {
+            "node": "Log Website ERROR Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a data table": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Check Website Availability",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Website  Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Telegram Connection Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Website Availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
